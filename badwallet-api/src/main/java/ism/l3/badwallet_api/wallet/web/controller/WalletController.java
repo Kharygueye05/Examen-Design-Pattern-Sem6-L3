@@ -3,6 +3,7 @@ package ism.l3.badwallet_api.wallet.web.controller;
 import ism.l3.badwallet_api.wallet.data.dto.WalletCreateDTO;
 import ism.l3.badwallet_api.wallet.data.dto.WalletDetailDTO;
 import ism.l3.badwallet_api.wallet.data.dto.WalletListDTO;
+import ism.l3.badwallet_api.wallet.service.WalletSeeder;
 import ism.l3.badwallet_api.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,13 +16,15 @@ import ism.l3.badwallet_api.transaction.data.entity.Transaction;
 import java.util.List;
 import java.util.Map;
 
+
 @RestController
 @RequestMapping("/api/wallets")
 @RequiredArgsConstructor
 public class WalletController {
     
     private final WalletService walletService;
-    
+    private final WalletSeeder walletSeeder;
+
     @PostMapping
     public ResponseEntity<WalletDetailDTO> createWallet(@RequestBody WalletCreateDTO dto) {
         WalletDetailDTO created = walletService.createWallet(dto);
@@ -83,5 +86,12 @@ public class WalletController {
     @GetMapping("/{phoneNumber}/transactions")
     public ResponseEntity<List<Transaction>> getTransactionHistory(@PathVariable String phoneNumber) {
         return ResponseEntity.ok(walletService.getTransactionHistory(phoneNumber));
+    }
+    @PostMapping("/seed")
+    public ResponseEntity<String> seedWallets(
+            @RequestParam(defaultValue = "10") int numWallets,
+            @RequestParam(defaultValue = "0") int eventsPerWallet) {
+        walletSeeder.seedWallets(numWallets, eventsPerWallet);
+        return ResponseEntity.ok(numWallets + " portefeuilles créés avec succès");
     }
 }

@@ -61,3 +61,5 @@ Content-Type: application/json
 
 ### Consulter l'historique des transactions
 GET {{walletHost}}/api/wallets/+221779998877/transactions
+### Seeder - Créer plusieurs portefeuilles
+POST {{walletHost}}/api/wallets/seed?numWallets=5&eventsPerWallet=0
