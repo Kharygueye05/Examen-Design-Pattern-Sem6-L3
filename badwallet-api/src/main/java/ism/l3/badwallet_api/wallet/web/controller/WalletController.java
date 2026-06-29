@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import ism.l3.badwallet_api.transaction.data.entity.Transaction;
 import java.util.List;
 import java.util.Map;
+import ism.l3.badwallet_api.payment.service.PaymentServiceClient;
+import ism.l3.badwallet_api.payment.data.dto.InvoiceDTO;
 
 @RestController
 @RequestMapping("/api/wallets")
@@ -21,6 +23,7 @@ import java.util.Map;
 public class WalletController {
     
     private final WalletService walletService;
+    private final PaymentServiceClient paymentServiceClient;
     
     @PostMapping
     public ResponseEntity<WalletDetailDTO> createWallet(@RequestBody WalletCreateDTO dto) {
@@ -83,5 +86,22 @@ public class WalletController {
     @GetMapping("/{phoneNumber}/transactions")
     public ResponseEntity<List<Transaction>> getTransactionHistory(@PathVariable String phoneNumber) {
         return ResponseEntity.ok(walletService.getTransactionHistory(phoneNumber));
+    }
+    @GetMapping("/external/factures/{walletCode}/current")
+    public ResponseEntity<List<InvoiceDTO>> getCurrentInvoices(
+            @PathVariable String walletCode,
+            @RequestParam(required = false) String unite) {
+        if (unite != null && !unite.isEmpty()) {
+            return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoicesByProvider(walletCode, unite));
+        }
+        return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoices(walletCode));
+    }
+
+    @GetMapping("/external/factures/{walletCode}/periode")
+    public ResponseEntity<List<InvoiceDTO>> getInvoicesByPeriod(
+            @PathVariable String walletCode,
+            @RequestParam LocalDate debut,
+            @RequestParam LocalDate fin) {
+        return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoicesByPeriod(walletCode, debut, fin));
     }
 }
