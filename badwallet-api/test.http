@@ -11,7 +11,6 @@ Content-Type: application/json
     "code": "WLT-TEST001",
     "currency": "XOF"
 }
-
 ### Lister tous les portefeuilles (Paginé)
 GET {{walletHost}}/api/wallets?page=0&size=10
 
@@ -21,3 +20,44 @@ GET {{walletHost}}/api/wallets/+221779998877
 
 ### Consulter uniquement le solde
 GET {{walletHost}}/api/wallets/+221779998877/balance
+### Créer un deuxième portefeuille
+POST {{walletHost}}/api/wallets
+Content-Type: application/json
+
+{
+    "phoneNumber": "+221770000002",
+    "email": "client2@gmail.com",
+    "initialBalance": 50000,
+    "code": "WLT-TEST002",
+    "currency": "XOF"
+}
+
+### Effectuer un dépôt
+POST {{walletHost}}/api/wallets/1/deposit
+Content-Type: application/json
+
+{
+    "amount": 10000
+}
+
+### Effectuer un retrait (frais de 1% plafonné à 5000 CFA)
+POST {{walletHost}}/api/wallets/withdraw
+Content-Type: application/json
+
+{
+    "phoneNumber": "+221779998877",
+    "amount": 10000
+}
+
+### Effectuer un transfert
+POST {{walletHost}}/api/wallets/transfer
+Content-Type: application/json
+
+{
+    "senderPhone": "+221779998877",
+    "receiverPhone": "+221770000002",
+    "amount": 2000
+}
+
+### Consulter l'historique des transactions
+GET {{walletHost}}/api/wallets/+221779998877/transactions
