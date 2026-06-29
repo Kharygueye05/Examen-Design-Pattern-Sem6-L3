@@ -12,6 +12,8 @@ Content-Type: application/json
     "code": "WLT-TEST001",
     "currency": "XOF"
 }
+
+POST {{walletHost}}/api/wallets/seed?numWallets=5&eventsPerWallet=0
 ### Lister tous les portefeuilles (Paginé)
 GET {{walletHost}}/api/wallets?page=0&size=10
 
@@ -72,3 +74,18 @@ GET {{walletHost}}/api/wallets/external/factures/WLT-0000001/current?unite=ISM
 
 ### Consulter les factures impayées sur une période
 GET {{walletHost}}/api/wallets/external/factures/WLT-0000001/periode?debut=2026-05-01&fin=2026-07-01
+
+GET {{walletHost}}/api/wallets/+221770000001
+
+GET {{walletHost}}/api/wallets/+221770000001/balance
+
+POST {{walletHost}}/api/wallets
+Content-Type: application/json
+
+{
+    "phoneNumber": "+221770000001",
+    "email": "admin@badwallet.com",
+    "initialBalance": 100000,
+    "code": "WLT-0000001",
+    "currency": "XOF"
+}
