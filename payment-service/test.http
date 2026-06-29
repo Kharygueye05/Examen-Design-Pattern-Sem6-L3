@@ -1,0 +1,20 @@
+@paymentHost = http://localhost:8081
+
+### Générer des factures pour un portefeuille
+POST {{paymentHost}}/api/invoices/seed
+Content-Type: application/json
+
+{
+    "walletCode": "WLT-0000001",
+    "providerName": "ISM",
+    "months": 3
+}
+
+### Consulter les factures impayées d'un portefeuille
+GET {{paymentHost}}/api/invoices/unpaid/WLT-0000001
+
+### Consulter les factures impayées par fournisseur
+GET {{paymentHost}}/api/invoices/unpaid/WLT-0000001/ISM
+
+### Consulter les factures impayées sur une période
+GET {{paymentHost}}/api/invoices/unpaid/WLT-0000001/period?debut=2026-05-01&fin=2026-07-01
