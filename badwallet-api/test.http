@@ -1,3 +1,4 @@
+//j'ai pris le prot 8082 car le port 8080 est déjà utilisé par un autre processus
 @walletHost = http://localhost:8082
 
 ### Créer un nouveau portefeuille
@@ -63,3 +64,11 @@ Content-Type: application/json
 GET {{walletHost}}/api/wallets/+221779998877/transactions
 ### Seeder - Créer plusieurs portefeuilles
 POST {{walletHost}}/api/wallets/seed?numWallets=5&eventsPerWallet=0
+### Consulter les factures impayées du mois en cours
+GET {{walletHost}}/api/wallets/external/factures/WLT-0000001/current
+
+### Consulter les factures impayées filtrées par fournisseur
+GET {{walletHost}}/api/wallets/external/factures/WLT-0000001/current?unite=ISM
+
+### Consulter les factures impayées sur une période
+GET {{walletHost}}/api/wallets/external/factures/WLT-0000001/periode?debut=2026-05-01&fin=2026-07-01
