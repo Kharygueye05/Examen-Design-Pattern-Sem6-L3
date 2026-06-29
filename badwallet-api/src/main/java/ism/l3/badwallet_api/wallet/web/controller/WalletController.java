@@ -1,5 +1,8 @@
 package ism.l3.badwallet_api.wallet.web.controller;
 
+import ism.l3.badwallet_api.payment.data.dto.InvoiceDTO;
+import ism.l3.badwallet_api.payment.service.PaymentServiceClient;
+import ism.l3.badwallet_api.transaction.data.entity.Transaction;
 import ism.l3.badwallet_api.wallet.data.dto.WalletCreateDTO;
 import ism.l3.badwallet_api.wallet.data.dto.WalletDetailDTO;
 import ism.l3.badwallet_api.wallet.data.dto.WalletListDTO;
@@ -9,45 +12,57 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ism.l3.badwallet_api.transaction.data.entity.Transaction;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/wallets")
 @RequiredArgsConstructor
 public class WalletController {
-    
+
     private final WalletService walletService;
     private final WalletSeeder walletSeeder;
+    private final PaymentServiceClient paymentServiceClient;
 
+    
     @PostMapping
     public ResponseEntity<WalletDetailDTO> createWallet(@RequestBody WalletCreateDTO dto) {
         WalletDetailDTO created = walletService.createWallet(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-    
+
     @GetMapping
     public ResponseEntity<Page<WalletListDTO>> getAllWallets(
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(walletService.getAllWallets(pageable));
     }
-    
+
     @GetMapping("/{phoneNumber}")
     public ResponseEntity<WalletDetailDTO> getWalletByPhoneNumber(@PathVariable String phoneNumber) {
         return walletService.getWalletByPhoneNumber(phoneNumber)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @GetMapping("/{phoneNumber}/balance")
     public ResponseEntity<Double> getBalance(@PathVariable String phoneNumber) {
         return ResponseEntity.ok(walletService.getBalanceByPhoneNumber(phoneNumber));
     }
+
+    @PostMapping("/seed")
+    public ResponseEntity<String> seedWallets(
+            @RequestParam(defaultValue = "10") int numWallets,
+            @RequestParam(defaultValue = "0") int eventsPerWallet) {
+        walletSeeder.seedWallets(numWallets, eventsPerWallet);
+        return ResponseEntity.ok(numWallets + " portefeuilles créés avec succès");
+    }
+
 
     @PostMapping("/{id}/deposit")
     public ResponseEntity<Transaction> deposit(@PathVariable Long id, @RequestBody Map<String, Double> request) {
@@ -58,7 +73,6 @@ public class WalletController {
         Transaction transaction = walletService.deposit(id, amount);
         return ResponseEntity.ok(transaction);
     }
-
 
     @PostMapping("/withdraw")
     public ResponseEntity<Transaction> withdraw(@RequestBody Map<String, Object> request) {
@@ -87,11 +101,23 @@ public class WalletController {
     public ResponseEntity<List<Transaction>> getTransactionHistory(@PathVariable String phoneNumber) {
         return ResponseEntity.ok(walletService.getTransactionHistory(phoneNumber));
     }
-    @PostMapping("/seed")
-    public ResponseEntity<String> seedWallets(
-            @RequestParam(defaultValue = "10") int numWallets,
-            @RequestParam(defaultValue = "0") int eventsPerWallet) {
-        walletSeeder.seedWallets(numWallets, eventsPerWallet);
-        return ResponseEntity.ok(numWallets + " portefeuilles créés avec succès");
+
+
+    @GetMapping("/external/factures/{walletCode}/current")
+    public ResponseEntity<List<InvoiceDTO>> getCurrentInvoices(
+            @PathVariable String walletCode,
+            @RequestParam(required = false) String unite) {
+        if (unite != null && !unite.isEmpty()) {
+            return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoicesByProvider(walletCode, unite));
+        }
+        return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoices(walletCode));
+    }
+
+    @GetMapping("/external/factures/{walletCode}/periode")
+    public ResponseEntity<List<InvoiceDTO>> getInvoicesByPeriod(
+            @PathVariable String walletCode,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin) {
+        return ResponseEntity.ok(paymentServiceClient.getUnpaidInvoicesByPeriod(walletCode, debut, fin));
     }
 }
